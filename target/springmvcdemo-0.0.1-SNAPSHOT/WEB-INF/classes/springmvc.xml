@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+        
+    <!-- 1.开启Spring MVC的注解的支持 --> 
+    <mvc:annotation-driven conversion-service="conversionService">
+    	<mvc:message-converters register-defaults="true">
+            <!-- 配置Fastjson支持 -->
+            <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/html;charset=UTF-8</value>
+                        <value>application/json</value>
+                    </list>
+                </property>
+                <property name="features">
+                    <list>
+                        <value>WriteMapNullValue</value>
+                        <value>QuoteFieldNames</value>
+                        <value>WriteDateUseDateFormat</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>   
+	
+	<!--2.自定义参数参数类型绑定  -->
+	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<property name="converters">
+			<list>
+				<bean class="com.yinhai.springmvc.util.MyDateConverter"></bean>
+			</list>
+		</property>
+	</bean>
+	
+	
+	<!-- 3.配置web控制器的扫描包  -->
+	<context:component-scan base-package="com.yinhai.springmvc.web"></context:component-scan>
+	
+	<!-- 4.配置处理器映射器 -->
+	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping"></bean>
+	
+	<!-- 5.配置处理器适配器 -->
+	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter"></bean>
+	
+	<!-- 6.配置视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="suffix" value=".jsp"/>            <!-- 配置视图解析器的后缀 -->
+		<property name="prefix" value="/WEB-INF/page/"/>  <!-- 配置视图解析器的前缀 -->
+	</bean>
+	
+	<!-- 7.配置静态资源访问路径 -->
+	<mvc:resources location="/static/*" mapping="/static/**"></mvc:resources>
+	
+	<!-- 8.文件上传的配置 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="resolveLazily" value="true"/>    <!-- 延迟解析 -->
+		<property name="maxUploadSize" value="1048576"/> <!--最大文件上传的尺寸 为1M  1024*1024 -->
+	</bean>
+	
+	<!-- 9.配置异常解析类 -->
+	<bean class="com.yinhai.springmvc.exception.CustomExceptionResolver"></bean>
+	
+	<!-- 10.配置自定义的拦截器 -->
+	<mvc:interceptors>
+		<!-- 可以配置多个，拦截器的执行顺序和配置的先后的顺序有关  -->
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>  <!-- 代表拦截路径 -->
+			<bean class="com.yinhai.springmvc.interceptor.MyInterceptor"></bean>
+		</mvc:interceptor>	
+	</mvc:interceptors>
+	
+</beans>
